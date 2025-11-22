@@ -48,6 +48,22 @@ const SoilData = ({ data, locationName }: SoilDataProps) => {
 
   const plants = getSuitablePlants();
 
+  // Check if we have valid data
+  const hasValidData = data.ph > 0 || data.organic_carbon > 0 || data.nitrogen > 0;
+
+  if (!hasValidData) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center">
+          <p className="text-destructive font-semibold">No soil data available for this location</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            The selected location may be over water or outside the SoilGrids coverage area.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6 animate-slide-up">
       <div className="text-center mb-8">
