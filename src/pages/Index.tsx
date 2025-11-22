@@ -1,4 +1,6 @@
 import { useState } from "react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
 import LocationSearch from "@/components/LocationSearch";
 import SoilData from "@/components/SoilData";
@@ -15,50 +17,60 @@ const Index = () => {
   const handleLocationSubmit = async (lat: number, lon: number, name: string) => {
     setIsLoading(true);
     setLocationName(name);
+    setSoilData(null); // Clear previous data
     
     try {
+      console.log(`Fetching soil data for: ${name} (${lat}, ${lon})`);
       const data = await fetchSoilData(lat, lon);
+      console.log("Soil data received:", data);
       setSoilData(data);
       toast({
         title: "Success!",
         description: "Soil data retrieved successfully",
       });
     } catch (error) {
+      console.error("Failed to fetch soil data:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch soil data. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to fetch soil data. Please try again.",
         variant: "destructive",
       });
+      setSoilData(null);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Hero />
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header />
       
-      <div className="py-12">
-        <LocationSearch onLocationSubmit={handleLocationSubmit} isLoading={isLoading} />
+      <main className="flex-1">
+        <Hero />
         
-        {isLoading && (
-          <div className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Analyzing soil data...</p>
-          </div>
-        )}
-        
-        {soilData && !isLoading && (
-          <SoilData data={soilData} locationName={locationName} />
-        )}
-      </div>
-      
-      <footer className="bg-muted py-8 mt-20">
-        <div className="max-w-6xl mx-auto px-6 text-center text-muted-foreground">
-          <p>Data powered by SoilGrids — Global gridded soil information</p>
-          <p className="text-sm mt-2">© 2024 Soil Intelligence Platform</p>
+        <div className="py-12">
+          <LocationSearch onLocationSubmit={handleLocationSubmit} isLoading={isLoading} />
+          
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center py-12 animate-fade-in">
+              <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
+              <p className="text-muted-foreground">Analyzing soil data...</p>
+            </div>
+          )}
+          
+          {soilData && !isLoading && (
+            <SoilData data={soilData} locationName={locationName} />
+          )}
+          
+          {!soilData && !isLoading && (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>Enter a location above to start analyzing soil data</p>
+            </div>
+          )}
         </div>
-      </footer>
+      </main>
+      
+      <Footer />
     </div>
   );
 };
