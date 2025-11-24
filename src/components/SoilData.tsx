@@ -3,6 +3,8 @@ import { Progress } from "@/components/ui/progress";
 import { Leaf, Droplets, Mountain, Activity } from "lucide-react";
 import ExportSoilData from "./ExportSoilData";
 import SoilTextureTriangle from "./SoilTextureTriangle";
+import SoilComparisonChart from "./SoilComparisonChart";
+import GeneratePDFReport from "./GeneratePDFReport";
 
 interface SoilDataProps {
   data: {
@@ -50,6 +52,24 @@ const SoilData = ({ data, locationName }: SoilDataProps) => {
 
   const plants = getSuitablePlants();
 
+  const getTextureClass = () => {
+    const clay = data.clay;
+    const sand = data.sand;
+    const silt = data.silt;
+    
+    if (clay >= 40) return "Clay";
+    if (sand >= 85) return "Sand";
+    if (sand >= 70 && clay <= 15) return "Loamy Sand";
+    if (clay >= 35 && sand <= 45) return "Clay Loam";
+    if (clay >= 27 && sand <= 20) return "Silty Clay";
+    if (clay >= 27 && sand >= 45) return "Sandy Clay";
+    if (silt >= 80 && clay <= 12) return "Silt";
+    if (silt >= 50 && clay <= 27 && sand <= 50) return "Silt Loam";
+    if (clay <= 27 && sand <= 52 && silt >= 28) return "Loam";
+    if (clay <= 20 && sand >= 52 && silt <= 50) return "Sandy Loam";
+    return "Loam";
+  };
+
   // Check if we have valid data
   const hasValidData = data.ph > 0 || data.organic_carbon > 0 || data.nitrogen > 0;
 
@@ -71,7 +91,15 @@ const SoilData = ({ data, locationName }: SoilDataProps) => {
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-foreground mb-2">Soil Analysis Results</h2>
         <p className="text-muted-foreground mb-3">{locationName}</p>
-        <ExportSoilData data={data} locationName={locationName} />
+        <div className="flex flex-wrap gap-3 justify-center items-center">
+          <ExportSoilData data={data} locationName={locationName} />
+          <GeneratePDFReport 
+            data={data} 
+            locationName={locationName} 
+            recommendedCrops={plants}
+            soilTexture={getTextureClass()}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -175,6 +203,9 @@ const SoilData = ({ data, locationName }: SoilDataProps) => {
         {/* Soil Texture Triangle Classification */}
         <SoilTextureTriangle clay={data.clay} sand={data.sand} silt={data.silt} />
       </div>
+
+      {/* Comparative Soil Analysis */}
+      <SoilComparisonChart actualData={data} primaryCrop={plants[0]} />
 
       {/* Suitable Plants Card */}
       <Card className="shadow-strong">
